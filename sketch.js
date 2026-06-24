@@ -2,7 +2,15 @@ let BallX = 200;
 let BallY;
 let Velo = 0;
 let Grav = 0.5;
-let isGrounded = false;
+let isGrounded;
+let blockSize = 50;
+let mapData = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+  [1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1]
+];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -20,6 +28,18 @@ function draw() {
     let cameraX = width / 4 - BallX;
     push();
     translate(cameraX, 0);
+
+    // draw() 内、push() と translate() の後で実行
+for (let r = 0; r < mapData.length; r++) {
+  for (let c = 0; c < mapData[r].length; c++) {
+    if (mapData[r][c] === 1) {
+      fill(100); // ブロックの色（グレーなど）
+      noStroke();
+      rect(c * blockSize, r * blockSize, blockSize, blockSize);
+    }
+  }
+}
+
     if(keyIsDown(RIGHT_ARROW)){
       BallX += 5;
     }
@@ -27,12 +47,14 @@ function draw() {
       BallX -= 5;
     }
 
-    Velo = Velo + Grav;
-    BallY = BallY + Velo;
-    if(BallY > height-35){
-        BallY = height-35;
+    let col = floor(BallX / blockSize);
+    let row = floor((BallY+35) / blockSize);
+    if (row >= 0 && row < map.length && col >= 0 && col < map[0].length){
+      if (map[row][col] == 1){
+        BallY = row * blockSize - 35;
         Velo = 0;
         isGrounded = true;
+      }
     } else {
       isGrounded = false;
     }
@@ -40,14 +62,6 @@ function draw() {
     strokeWeight(1);
     fill("red");
     circle(BallX, BallY, 70);
-
-    stroke(0);
-    strokeWeight(10);
-    // 例：長い地面を引いておく
-    line(0, height - 35, 5000, height - 35); 
-    // 例：途中の壁
-    line(600, height - 35, 600, height - 200);
-
     pop();
 }
 
