@@ -6,29 +6,32 @@ let Velo = 0;
 let Grav = 0.5;
 let isGrounded;
 let blockSize = 80;
+let isGameClear = false;
+let isGameOver = false;
 
-// 敵キャラクターを管理する配列
 let enemies = [];
 
+let goalBlocks = [];
+
 let mapData = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-  [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 5],
+  [5, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5],
 ];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(120);
-  parseMapData(); // マップデータからプレイヤーと敵をスキャン
+  parseMapData();
 }
 
 function windowResized() {
@@ -38,18 +41,29 @@ function windowResized() {
 function draw() {
   background('#87cefa');
 
+  if (isGameClear) {
+    drawClearScreen();
+    return;
+  }
+  
+  if (isGameOver) {
+  drawDeathScreen();
+  return;
+  }
+
   let cameraX = width / 4 - BallX;
   push();
   translate(cameraX, 0);
 
   drawMap();
-  
-  // 敵の移動・描画・衝突判定を一括処理
+
   updateAndDrawEnemies();
 
   updatePlayerHorizontal();
   updatePlayerVertical();
   drawPlayer();
+
+  checkGoal();
 
   pop();
 
@@ -59,15 +73,65 @@ function draw() {
 function keyPressed() {
   if (keyCode == UP_ARROW && isGrounded) {
     Velo = -20;
-    isGrounded = false; // 連続ジャンプ防止
+    isGrounded = false;
+  }
+  if (key === 'r' || key === 'R') {
+    restartGame();
   }
 }
 
+function restartGame() {
+  isGameClear = false;
+  isGameOver = false;
+  Velo = 0;
+  parseMapData();
+} 
 
-// 1. マップデータからプレイヤー（2）と敵（3）の位置を読み込む関数
+function drawClearScreen() {
+  background(0, 0, 0, 200);
+  push();
+  translate(width / 2, height / 2);
+
+  fill(255, 215, 0);
+  stroke(255, 255, 0);
+  strokeWeight(4);
+  textAlign(CENTER, CENTER);
+  textSize(80);
+  text("GAME CLEAR!", 0, -50);
+
+  fill(255);
+  noStroke();
+  textSize(30);
+  text("Rキーでリスタート", 0, 50);
+
+  pop();
+}
+
+function drawDeathScreen() {
+  background(0, 0, 0, 200);
+  push();
+  translate(width / 2, height / 2);
+
+  fill(255,0,0);
+  stroke(255, 255, 0);
+  strokeWeight(4);
+  textAlign(CENTER, CENTER);
+  textSize(80);
+  text("GAME OVER", 0, -50);
+
+  fill(255);
+  noStroke();
+  textSize(30);
+  text("Rキーでリスタート", 0, 50);
+
+  pop();
+}
+
+// 1. マップデータからプレイヤー（2）と敵（3）、ゴール（4）の位置を読み込む関数
 function parseMapData() {
   enemies = []; // 配列をリセット
-  
+  goalBlocks = []; // ゴールブロック配列をリセット
+
   for (let r = 0; r < mapData.length; r++) {
     for (let c = 0; c < mapData[r].length; c++) {
       // プレイヤーの初期スポーン地点
@@ -91,11 +155,20 @@ function parseMapData() {
           range: blockSize * 2         // 往復する最大距離（2マス分）
         });
       }
+      // ゴールブロックの配置
+      else if (mapData[r][c] === 4) {
+        goalBlocks.push({
+          x: c * blockSize,
+          y: r * blockSize,
+          w: blockSize,
+          h: blockSize
+        });
+      }
     }
   }
 }
 
-// 2. マップ（地形ブロック）を描画する関数
+// 2. マップ（地形ブロックとゴールブロック）を描画する関数
 function drawMap() {
   for (let r = 0; r < mapData.length; r++) {
     for (let c = 0; c < mapData[r].length; c++) {
@@ -104,6 +177,28 @@ function drawMap() {
         noStroke();
         rect(c * blockSize, r * blockSize, blockSize, blockSize);
       }
+      else if (mapData[r][c] === 4) {
+        // ゴールブロック：金色に光る演出
+        let glow = sin(frameCount * 0.1) * 30 + 225;
+        fill(glow, 215, 0);
+        stroke(255, 255, 100);
+        strokeWeight(2);
+        rect(c * blockSize, r * blockSize, blockSize, blockSize);
+      }
+    }
+  }
+}
+
+// ゴール判定を行う関数
+function checkGoal() {
+  let r = 35;
+  for (let g of goalBlocks) {
+    let cx = constrain(BallX, g.x, g.x + g.w);
+    let cy = constrain(BallY, g.y, g.y + g.h);
+    let dx = BallX - cx;
+    let dy = BallY - cy;
+    if (dx*dx + dy*dy <= r*r) {
+      isGameClear = true;
     }
   }
 }
@@ -134,7 +229,7 @@ function updateAndDrawEnemies() {
 
     // 衝突している場合
     if (distanceToPlayer < collisionLimit) {
-      
+
       // 【踏みつけ判定】
       // 1. プレイヤーが下降中（Velo >= 0）であること
       // 2. プレイヤーの足元（BallY）が、敵の中心（enemy.y）よりも十分高い位置にあること
@@ -143,13 +238,12 @@ function updateAndDrawEnemies() {
       if (isStepping) {
         // 敵を倒す：配列から削除
         enemies.splice(i, 1);
-        
+
         // プレイヤーを上方向にバウンドさせる
         Velo = -12; 
         isGrounded = false;
       } else {
-        // 横や下からの衝突：プレイヤー死亡
-        triggerPlayerDeath();
+        isGameOver = true;
       }
     }
   }
@@ -161,9 +255,9 @@ function updatePlayerHorizontal() {
   if (keyIsDown(RIGHT_ARROW)) {
     let nextCol = floor((BallX + 35 + speed) / blockSize); 
     let currentRow = floor(BallY / blockSize);
-    
+
     if (currentRow >= 0 && currentRow < mapData.length && nextCol >= 0 && nextCol < mapData[0].length) {
-      if (mapData[currentRow][nextCol] !== 1) {
+      if (mapData[currentRow][nextCol] !== 1 && mapData[currentRow][nextCol] !== 4 && mapData[currentRow][nextCol] !== 5) {
         BallX += speed;
       }
     } else {
@@ -176,7 +270,7 @@ function updatePlayerHorizontal() {
     let currentRow = floor(BallY / blockSize);
 
     if (currentRow >= 0 && currentRow < mapData.length && nextCol >= 0 && nextCol < mapData[0].length) {
-      if (mapData[currentRow][nextCol] !== 1) {
+      if (mapData[currentRow][nextCol] !== 1 && mapData[currentRow][nextCol] !== 4 && mapData[currentRow][nextCol] !== 5) {
         BallX -= speed;
       }
     } else {
@@ -189,13 +283,13 @@ function updatePlayerHorizontal() {
 function updatePlayerVertical() {
   Velo = Velo + Grav;
   BallY = BallY + Velo;
-  
+
   let col = floor(BallX / blockSize);
-  
+
   if (Velo < 0) {
     let headRow = floor((BallY - 35) / blockSize);
     if (headRow >= 0 && headRow < mapData.length && col >= 0 && col < mapData[0].length) {
-      if (mapData[headRow][col] === 1) {
+      if (mapData[headRow][col] === 1 || mapData[headRow][col] === 4 || mapData[headRow][col] === 5) {
         BallY = (headRow + 1) * blockSize + 35;
         Velo = 0;
       }
@@ -203,7 +297,7 @@ function updatePlayerVertical() {
   } else {
     let footRow = floor((BallY + 35) / blockSize);
     if (footRow >= 0 && footRow < mapData.length && col >= 0 && col < mapData[0].length) {
-      if (mapData[footRow][col] === 1) {
+      if (mapData[footRow][col] === 1 || mapData[footRow][col] === 4 || mapData[footRow][col] === 5) {
         BallY = footRow * blockSize - 35;
         Velo = 0;
         isGrounded = true;
@@ -214,7 +308,7 @@ function updatePlayerVertical() {
       isGrounded = false;
     }
   }
-  
+
   if (BallY < -100) {
     isGrounded = false;
   }
@@ -232,14 +326,6 @@ function drawPlayer() {
 function checkDeath() {
   let mapBottom = mapData.length * blockSize;
   if (BallY > mapBottom + 100 || BallY > height + 100) {
-    triggerPlayerDeath();
+    isGameOver = true;
   }
-}
-
-// 7. 死亡時の処理を共通化
-function triggerPlayerDeath() {
-  BallX = spawnX;
-  BallY = spawnY;
-  Velo = 0;
-  isGrounded = false;
 }
