@@ -30,6 +30,9 @@ let mapData = [
   [5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5],
 ];
 
+function preload() {
+  groundImg = loadImage("b.png");
+}
 function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(120);
@@ -190,9 +193,7 @@ function drawMap() {
   for (let r = 0; r < mapData.length; r++) {
     for (let c = 0; c < mapData[r].length; c++) {
       if (mapData[r][c] === 1) {
-        fill('#b03605'); 
-        noStroke();
-        rect(c * blockSize, r * blockSize, blockSize, blockSize);
+        image(groundImg, c * blockSize, r * blockSize, blockSize, blockSize);
       }
       else if (mapData[r][c] === 4) {
         // ゴールブロック：金色に光る演出
