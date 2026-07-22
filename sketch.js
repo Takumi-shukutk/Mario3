@@ -8,6 +8,8 @@ let isGrounded;
 let blockSize = 80;
 let isGameClear = false;
 let isGameOver = false;
+let jumped = 0;
+let groundImg;
 
 let enemies = [];
 
@@ -74,6 +76,7 @@ function keyPressed() {
   if (keyCode == UP_ARROW && isGrounded) {
     Velo = -20;
     isGrounded = false;
+    jumped = jumped + 1;
   }
   if (key === 'r' || key === 'R') {
     restartGame();
@@ -85,6 +88,7 @@ function restartGame() {
   isGameOver = false;
   Velo = 0;
   parseMapData();
+  jumped = 0;
 } 
 
 function drawClearScreen() {
@@ -92,12 +96,25 @@ function drawClearScreen() {
   push();
   translate(width / 2, height / 2);
 
-  fill(255, 215, 0);
-  stroke(255, 255, 0);
-  strokeWeight(4);
-  textAlign(CENTER, CENTER);
-  textSize(80);
-  text("GAME CLEAR!", 0, -50);
+  if (jumped <= 10) {
+    fill(255, 215, 0);
+    stroke(255, 255, 0);
+    strokeWeight(4);
+    textAlign(CENTER, CENTER);
+    textSize(80);
+    text("隠しクエストクリア！", 0, -50);
+  } else if (jumped > 10) {
+    fill(255, 215, 0);
+    stroke(255, 255, 0);
+    strokeWeight(4);
+    textAlign(CENTER, CENTER);
+    textSize(80);
+    text("GAME CLEAR!", 0, -50);
+    fill(255);
+    noStroke();
+    textSize(20);
+    text("ジャンプが10回以内でゴールしてみよう！", 0, 300);
+  }
 
   fill(255);
   noStroke();
