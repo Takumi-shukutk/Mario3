@@ -32,7 +32,8 @@ let mapData = [
 ];
 
 function preload() {
-  groundImg = loadImage("b.png");
+  groundImg = loadImage('Images/ground.png');
+  blockImg = loadImage('Images/block.png');
 }
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -194,7 +195,7 @@ function drawMap() {
   for (let r = 0; r < mapData.length; r++) {
     for (let c = 0; c < mapData[r].length; c++) {
       if (mapData[r][c] === 1) {
-        image(groundImg, c * blockSize, r * blockSize, blockSize, blockSize);
+        image (groundImg, c * blockSize, r * blockSize, blockSize, blockSize);
       }
       else if (mapData[r][c] === 4) {
         // ゴールブロック：金色に光る演出
@@ -205,9 +206,7 @@ function drawMap() {
         rect(c * blockSize, r * blockSize, blockSize, blockSize);
       }
       else if (mapData[r][c] === 6) {
-        fill('#522c01');
-        stroke("black");
-        rect (c * blockSize, r * blockSize, blockSize, blockSize);
+        image (blockImg, c * blockSize, r * blockSize, blockSize, blockSize);
       }
     }
   }
