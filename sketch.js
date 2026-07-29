@@ -5,18 +5,17 @@ let spawnY = 0;
 let Velo = 0;
 let Grav = 0.5;
 let isGrounded;
-let blockSize = 80;
+const blockSize = 80;
 let isGameClear = false;
 let isGameOver = false;
-let jumped = 0;
 let groundImg;
+let life = 3;
 
 let enemies = [];
-
 let goalBlocks = [];
 
 // 0...air 1...ground 2...start 3...enemy 4...goal 5...invisible Wall 6...block
-let mapData = [
+const stage1 = [
   [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
   [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
   [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
@@ -30,6 +29,23 @@ let mapData = [
   [5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 6, 6, 0, 0, 0, 0, 6, 6, 0, 0, 0, 0, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
   [5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5],
 ];
+const stage2 = [
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+  [5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 5],
+];
+const stageMaps = [stage1, stage2];
+let mapData = stageMaps[0];
+let stage = 0;
 
 function preload() {
   groundImg = loadImage('Images/ground.png');
@@ -39,6 +55,9 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(120);
   parseMapData();
+  life = 3;
+  stage = 1;
+  loadStage(1);
 }
 
 function windowResized() {
@@ -49,14 +68,24 @@ function draw() {
   background('#87cefa');
 
   if (isGameClear) {
-    drawClearScreen();
+    if (stage > stageMaps.length){
+      drawClearScreen();
+    } else {
+      loadStage(stage + 1);
+    }
     return;
   }
   
   if (isGameOver) {
-  drawDeathScreen();
-  return;
+    if (life > 0){
+      drawDeathScreen();
+    } else {
+      drawEnd();
+    }
+    return;
   }
+  
+  drawLife();
 
   let cameraX = width / 4 - BallX;
   push();
@@ -81,44 +110,47 @@ function keyPressed() {
   if (keyCode == UP_ARROW && isGrounded) {
     Velo = -20;
     isGrounded = false;
-    jumped = jumped + 1;
   }
-  if (key === 'r' || key === 'R') {
+  if (key === 'r' && (isGameOver || isGameClear)) {
     restartGame();
   }
 }
 
-function restartGame() {
+function loadStage(stageNum){
+  stage = stageNum;
+
+  if (stage > stageMaps.length) {
+    isGameClear = true;
+    return;
+  }
+
+  mapData = stageMaps[stage - 1];
+
   isGameClear = false;
   isGameOver = false;
   Velo = 0;
+  
   parseMapData();
-  jumped = 0;
-} 
+}
+
+function restartGame() {
+  loadStage(1);
+}
 
 function drawClearScreen() {
   background(0, 0, 0, 200);
   push();
   translate(width / 2, height / 2);
 
-  if (jumped <= 10) {
-    fill(255, 215, 0);
-    stroke(255, 255, 0);
-    strokeWeight(4);
-    textAlign(CENTER, CENTER);
-    textSize(80);
-    text("隠しクエストクリア！", 0, -50);
-  } else if (jumped > 10) {
-    fill(255, 215, 0);
-    stroke(255, 255, 0);
-    strokeWeight(4);
-    textAlign(CENTER, CENTER);
-    textSize(80);
+  fill(255, 215, 0);
+  stroke(255, 255, 0);
+  strokeWeight(4);
+  textAlign(CENTER, CENTER);
+  textSize(80);
+  if (life >= 3) {
     text("GAME CLEAR!", 0, -50);
-    fill(255);
-    noStroke();
-    textSize(20);
-    text("ジャンプが10回以内でゴールしてみよう！", 0, 300);
+  } else {
+    text("PERFECT!!", 0, -50);
   }
 
   fill(255);
@@ -127,6 +159,14 @@ function drawClearScreen() {
   text("Rキーでリスタート", 0, 50);
 
   pop();
+}
+
+function drawLife() {
+  fill(255,0,0);
+  noStroke;
+  textAlign(LEFT, TOP);
+  textSize(30);
+  text("残機: " + life, 20, 20);
 }
 
 function drawDeathScreen() {
@@ -145,6 +185,26 @@ function drawDeathScreen() {
   noStroke();
   textSize(30);
   text("Rキーでリスタート", 0, 50);
+
+  pop();
+}
+
+function drawEnd() {
+  background(0, 0, 0, 200);
+  push();
+  translate(width / 2, height / 2);
+
+  fill(255,0,0);
+  stroke(255, 255, 0);
+  strokeWeight(4);
+  textAlign(CENTER, CENTER);
+  textSize(80);
+  text("GAME OVER", 0, -50);
+
+  fill(255);
+  noStroke();
+  textSize(30);
+  text("Ctrl + Rキーでリスタート", 0, 50);
 
   pop();
 }
@@ -266,6 +326,7 @@ function updateAndDrawEnemies() {
         Velo = -12; 
         isGrounded = false;
       } else {
+        life -= 1;
         isGameOver = true;
       }
     }
@@ -349,6 +410,7 @@ function drawPlayer() {
 function checkDeath() {
   let mapBottom = mapData.length * blockSize;
   if (BallY > mapBottom + 100 || BallY > height + 100) {
+    life -= 1;
     isGameOver = true;
   }
 }
