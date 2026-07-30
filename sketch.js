@@ -206,7 +206,7 @@ const stage4 = [
     noStroke();
     textSize(30);
     text("Rキーでリスタート", 0, 50);
-
+    
     pop();
   }
 
