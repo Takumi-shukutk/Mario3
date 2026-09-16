@@ -95,7 +95,7 @@
       [5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
       [5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
       [5,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
-      [5,0,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,5],
+      [5,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
       [5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
       [5,0,2,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,3,0,0,0,0,0,0,0,0,0,5],
       [5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5],
@@ -221,6 +221,7 @@
       textAlign(CENTER, CENTER);
       textSize(80);
       text("STAGE " + (stage + 1), 0, 0);
+      pop();
     }
 
     function drawClearScreen() {
@@ -301,6 +302,12 @@
       pop();
     }
 
+    function isSolidTile(row, col) {
+      if (row < 0 || row >= mapData.length || col < 0 || col >= mapData[0].length) return false;
+      let t = mapData[row][col];
+      return t === 1 || t === 4 || t === 5 || t === 6;
+    }
+
     // 1. マップデータからプレイヤー（2）と敵（3）、ゴール（4）の位置を読み込む関数
     function parseMapData() {
       enemies = []; // 配列をリセット
@@ -317,16 +324,16 @@
           }
           // 敵の配置
           else if (mapData[r][c] === 3) {
-            let enemyX = c * blockSize + (blockSize / 2);
-            let enemyY = r * blockSize + (blockSize / 2); // ブロックの中央
+            let enemySize = 50;
             enemies.push({
-              startX: enemyX,              // 初期位置（これを目安に左右5マス判定）
-              x: enemyX,                   // 現在のX座標
-              y: enemyY,                   // 現在のY座標
-              speed: 2,                    // 移動速度
-              direction: 1,                // 1 = 右, -1 = 左
-              size: 50,                    // 敵の直径
-              range: blockSize * 2         // 往復する最大距離（2マス分）
+              startX: c * blockSize + (blockSize / 2),
+              x: c * blockSize + (blockSize / 2),
+              y: r * blockSize + (blockSize / 2),   // 初期位置。あとは重力で着地
+              vy: 0,                                 // ← 縦速度を追加
+              speed: 2,
+              direction: 1,
+              size: enemySize,
+              range: blockSize * 2
             });
           }
           // ゴールブロックの配置
@@ -382,20 +389,71 @@
       }
     }
 
-    // 2.5 敵の制御（移動・描画・接触判定・踏みつけ）を行う関数
     function updateAndDrawEnemies() {
-      // 配列から要素を削除する可能性があるため、逆順ループで処理します
       for (let i = enemies.length - 1; i >= 0; i--) {
         let enemy = enemies[i];
+        let radius = enemy.size / 2;
 
-        // 左右の往復移動
-        enemy.x += enemy.speed * enemy.direction;
-        if (enemy.direction === 1 && enemy.x >= enemy.startX + enemy.range) {
-          enemy.direction = -1;
-        } else if (enemy.direction === -1 && enemy.x <= enemy.startX - enemy.range) {
-          enemy.direction = 1;
+        // --- 横移動（壁・範囲で反転） ---
+        let nextX = enemy.x + enemy.speed * enemy.direction;
+        let frontEdge = nextX + enemy.direction * radius;       // 進行方向の先端
+        let col = floor(frontEdge / blockSize);
+        let row = floor(enemy.y / blockSize);
+
+        let hitWall = isSolidTile(row, col);                    // 壁にぶつかる
+        let atRange = (enemy.direction === 1 && nextX >= enemy.startX + enemy.range) ||
+                      (enemy.direction === -1 && nextX <= enemy.startX - enemy.range);
+
+        if (hitWall || atRange) {
+          enemy.direction *= -1;   // ぶつかる／端まで来たら反転（めり込み防止）
+        } else {
+          enemy.x = nextX;
         }
 
+        // --- 縦移動（重力＋着地） ---
+        enemy.vy += Grav;
+        enemy.y += enemy.vy;
+        let vcol = floor(enemy.x / blockSize);
+
+        if (enemy.vy >= 0) {
+          // 落下中：足元が固体なら上に乗せる
+          let footRow = floor((enemy.y + radius) / blockSize);
+          if (isSolidTile(footRow, vcol)) {
+            enemy.y = footRow * blockSize - radius;
+            enemy.vy = 0;
+          }
+        } else {
+          // 上昇中（スポーン位置補正など）：頭が固体なら止める
+          let headRow = floor((enemy.y - radius) / blockSize);
+          if (isSolidTile(headRow, vcol)) {
+            enemy.y = (headRow + 1) * blockSize + radius;
+            enemy.vy = 0;
+          }
+        }
+
+        // --- 描画（既存のまま） ---
+        fill(148, 0, 211);
+        stroke(255);
+        strokeWeight(2);
+        circle(enemy.x, enemy.y, enemy.size);
+
+        // --- プレイヤーとの当たり／踏みつけ判定（既存のまま） ---
+        let distanceToPlayer = dist(BallX, BallY, enemy.x, enemy.y);
+        let collisionLimit = (70 / 2) + (enemy.size / 2);
+
+        if (distanceToPlayer < collisionLimit) {
+          let isStepping = (Velo >= 0) && (BallY < enemy.y - 15);
+          if (isStepping) {
+            enemies.splice(i, 1);
+            Velo = -12;
+            isGrounded = false;
+          } else {
+            life -= 1;
+            isGameOver = true;
+          }
+        }
+      }
+    }
         // 敵の描画
         fill(148, 0, 211);
         stroke(255);
@@ -426,8 +484,6 @@
             isGameOver = true;
           }
         }
-      }
-    }
 
     // 3. プレイヤーの横移動と壁の衝突判定を行う関数
     function updatePlayerHorizontal() {
