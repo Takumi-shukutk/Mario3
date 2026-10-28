@@ -9,7 +9,7 @@
 
 const CHUNK_W = 12;
 const STAGE_H = 12;      // マップ全体の行数
-const CHUNK_H = 6;       // チャンクとして書く行数（下側）
+const CHUNK_H = 10;       // チャンクとして書く行数（下側）
 const MAX_STAGE = NaN;
 
 // ---- スタートチャンク（必ず 2 を含む）----
@@ -25,7 +25,7 @@ const startChunks = [
   [
     "000000000000",
     "000000000000",
-    "000011100000",
+    "000066600000",
     "000000000000",
     "002000000030",
     "111111001111",
@@ -105,6 +105,14 @@ const midChunks = [
     "000000000000",
     "111110000011",
   ],
+  [
+  [0, 0, 0, 0, 6, 0, 0, 0, 0, 6, 0, 0],
+  [0, 0, 0, 0, 6, 0, 0, 0, 0, 6, 0, 0],
+  [0, 6, 0, 0, 6, 0, 0, 0, 0, 6, 0, 0],
+  [0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1],
+  ]
 ];
 
 // ---- ゴールチャンク（必ず 4 を含む）----
@@ -135,34 +143,34 @@ const goalChunks = [
   ],
 ];
 
-// 下6行 → 12行に補完して、数値の2次元配列にする
+// チャンクを必ず CHUNK_H 行に正規化（上に空気を詰める）
 function expandChunk(chunk) {
   const rows = [];
-  for (let i = 0; i < STAGE_H - CHUNK_H; i++) rows.push("0".repeat(CHUNK_W));
-  rows.push(...chunk);
+  const airRowsNeeded = CHUNK_H - chunk.length;
+  
+  // 安全装置：チャンクが CHUNK_H より大きい場合は切り詰める警告
+  if (airRowsNeeded < 0) {
+    console.warn("チャンクの行数が CHUNK_H を超えています。余分な行は無視されます。");
+  }
+  
+  // 上に空気を補完
+  for (let i = 0; i < Math.max(0, airRowsNeeded); i++) {
+    rows.push("0".repeat(CHUNK_W));
+  }
+  
+  // チャンクの内容を追加（CHUNK_H 行を超える分は無視）
+  for (let i = 0; i < Math.min(chunk.length, CHUNK_H); i++) {
+    // 文字列でも配列でも统一して文字列に変換しておく
+    const row = chunk[i];
+    rows.push(Array.isArray(row) ? row.join("") : row);
+  }
+  
   return rows;
 }
 
-// 起動時の整合性チェック
-function validateChunks() {
-  const check = (list, name, mustHave) => {
-    list.forEach((ch, i) => {
-      if (ch.length !== CHUNK_H) console.warn(`${name}[${i}]: 行数が${CHUNK_H}ではありません`);
-      ch.forEach((row, r) => {
-        if (row.length !== CHUNK_W) console.warn(`${name}[${i}] row${r}: 幅が${CHUNK_W}ではありません (${row.length})`);
-      });
-      if (mustHave && !ch.join("").includes(mustHave)) console.warn(`${name}[${i}]: ${mustHave} が含まれていません`);
-    });
-  };
-  check(startChunks, "startChunks", "2");
-  check(midChunks, "midChunks", null);
-  check(goalChunks, "goalChunks", "4");
-}
-validateChunks();
-
-// ステージ生成：左右端に透明壁(5)を全行に置き、[start][mid...][goal]を連結
+// ステージ生成
 function generateStage(stageNum) {
-  const midCount = 2 + stageNum;   // ステージが進むほど長くなる
+  const midCount = 2 + stageNum;
   const picked = [];
 
   picked.push(random(startChunks));
@@ -170,7 +178,7 @@ function generateStage(stageNum) {
   let prev = null;
   for (let i = 0; i < midCount; i++) {
     let c;
-    do { c = random(midChunks); } while (c === prev && midChunks.length > 1); // 同じチャンクの連続を避ける
+    do { c = random(midChunks); } while (c === prev && midChunks.length > 1);
     picked.push(c);
     prev = c;
   }
@@ -179,13 +187,35 @@ function generateStage(stageNum) {
 
   const expanded = picked.map(expandChunk);
   const map = [];
-  for (let r = 0; r < STAGE_H; r++) {
-    let row = [5];                                   // 最初の列：透明壁
+  
+  // CHUNK_H 行分だけループ（STAGE_H に依存しない）
+  for (let r = 0; r < CHUNK_H; r++) {
+    let row = [5];                                   // 左端：透明壁
     for (const ch of expanded) {
       for (const ch1 of ch[r]) row.push(Number(ch1));
     }
-    row.push(5);                                     // 最後の列：透明壁
+    row.push(5);                                     // 右端：透明壁
     map.push(row);
   }
   return map;
 }
+
+function validateChunks() {
+  const check = (list, name, mustHave) => {
+    list.forEach((ch, i) => {
+      if (ch.length > CHUNK_H) console.warn(`${name}[${i}]: 行数が${CHUNK_H}を超えています`);
+      
+      ch.forEach((row, r) => {
+        const rowStr = Array.isArray(row) ? row.join("") : row;
+        if (rowStr.length !== CHUNK_W) console.warn(`${name}[${i}] row${r}: 幅が${CHUNK_W}ではありません (${rowStr.length})`);
+      });
+      
+      const flat = ch.map(row => Array.isArray(row) ? row.join("") : row).join("");
+      if (mustHave && !flat.includes(mustHave)) console.warn(`${name}[${i}]: ${mustHave} が含まれていません`);
+    });
+  };
+  check(startChunks, "startChunks", "2");
+  check(midChunks, "midChunks", null);
+  check(goalChunks, "goalChunks", "4");
+}
+validateChunks();

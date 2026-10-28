@@ -86,7 +86,7 @@ function draw() {
     noStroke();
     textAlign(RIGHT, TOP);
     textSize(40);
-    text(stage, 200, 20)
+    text(stage, 1500, 20)
 }
 
 function keyPressed() {
@@ -367,15 +367,6 @@ function updateAndDrawEnemies() {
     }
   }
 }
-// 敵の描画
-fill(148, 0, 211);
-stroke(255);
-strokeWeight(2);
-circle(enemy.x, enemy.y, enemy.size);
-
-// プレイヤーと敵の距離を計算
-let distanceToPlayer = dist(BallX, BallY, enemy.x, enemy.y);
-let collisionLimit = (70 / 2) + (enemy.size / 2); // 判定の閾値（60px）
 
 // 3. プレイヤーの横移動と壁の衝突判定を行う関数
 function updatePlayerHorizontal() {
