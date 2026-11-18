@@ -4,7 +4,7 @@ let spawnX = 200;
 let spawnY = 0;
 let Velo = 0;
 let Grav = 0.5;
-let isGrounded;
+let isGrounded = false;
 const blockSize = 80;
 let isGameClear = false;
 let isGameOver = false;
