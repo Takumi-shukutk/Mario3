@@ -10,6 +10,7 @@ let isGameClear = false;
 let isGameOver = false;
 let clearStartTime = 0;
 let groundImg;
+let blockImg
 let life = 3;
 
 let enemies = [];
@@ -81,12 +82,13 @@ function draw() {
   pop();
 
   checkDeath();
+
 // Debug
     fill(255, 255, 255);
     noStroke();
     textAlign(RIGHT, TOP);
     textSize(40);
-    text(stage, 1500, 20)
+    text(stage, width - 20, 20);
 }
 
 function keyPressed() {
@@ -371,28 +373,21 @@ function updateAndDrawEnemies() {
 // 3. プレイヤーの横移動と壁の衝突判定を行う関数
 function updatePlayerHorizontal() {
   let speed = 5;
-  if (keyIsDown(RIGHT_ARROW)) {
-    let nextCol = floor((BallX + 35 + speed) / blockSize);
-    let currentRow = floor(BallY / blockSize);
+  let radius = 35;
+  let topRow = floor((BallY - 30) / blockSize);
+  let midRow = floor(BallY / blockSize);
+  let botRow = floor((BallY + 30) / blockSize);
 
-    if (currentRow >= 0 && currentRow < mapData.length && nextCol >= 0 && nextCol < mapData[0].length) {
-      if (mapData[currentRow][nextCol] !== 1 && mapData[currentRow][nextCol] !== 4 && mapData[currentRow][nextCol] !== 5 && mapData[currentRow][nextCol] !== 6) {
-        BallX += speed;
-      }
-    } else {
+  if (keyIsDown(RIGHT_ARROW)) {
+    let nextCol = floor((BallX + radius + speed) / blockSize);
+    if (!isSolidTile(topRow, nextCol) && !isSolidTile(midRow, nextCol) && !isSolidTile(botRow, nextCol)) {
       BallX += speed;
     }
   }
 
   if (keyIsDown(LEFT_ARROW)) {
-    let nextCol = floor((BallX - 35 - speed) / blockSize);
-    let currentRow = floor(BallY / blockSize);
-
-    if (currentRow >= 0 && currentRow < mapData.length && nextCol >= 0 && nextCol < mapData[0].length) {
-      if (mapData[currentRow][nextCol] !== 1 && mapData[currentRow][nextCol] !== 4 && mapData[currentRow][nextCol] !== 5 && mapData[currentRow][nextCol] !== 6) {
-        BallX -= speed;
-      }
-    } else {
+    let nextCol = floor((BallX - radius - speed) / blockSize);
+    if (!isSolidTile(topRow, nextCol) && !isSolidTile(midRow, nextCol) && !isSolidTile(botRow, nextCol)) {
       BallX -= speed;
     }
   }
@@ -444,7 +439,7 @@ function drawPlayer() {
 // 6. 落下による死亡チェックと自動リスポーンを行う関数
 function checkDeath() {
   let mapBottom = mapData.length * blockSize;
-  if (BallY > mapBottom + 100 || BallY > height + 100) {
+  if (BallY > mapBottom + 100) {
     life -= 1;
     isGameOver = true;
   }

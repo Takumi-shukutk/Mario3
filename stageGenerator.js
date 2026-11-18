@@ -10,7 +10,7 @@
 const CHUNK_W = 12;
 const STAGE_H = 12;      // マップ全体の行数
 const CHUNK_H = 10;       // チャンクとして書く行数（下側）
-const MAX_STAGE = NaN;
+const MAX_STAGE = Infinity;
 
 // ---- スタートチャンク（必ず 2 を含む）----
 const startChunks = [
